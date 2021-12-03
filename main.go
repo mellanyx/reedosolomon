@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	reedosolomon "github.com/mellanyx/reedosolomon/functions"
+	"github.com/mellanyx/reedosolomon/functions"
 	"log"
 	"strconv"
 )
