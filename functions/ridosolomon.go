@@ -1,8 +1,11 @@
 package reedosolomon
 
 import (
+	//"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
+	_ "github.com/cheggaaa/pb/v3"
 	"io/fs"
 	"io/ioutil"
 	"log"
@@ -105,6 +108,10 @@ func EncodeFile(filePath string, Primitive int, EccSymbols int) {
 
 	collectArByte := CollectArByteFile(arByte, EccSymbols)
 
+	// create and start new bar
+	count := len(collectArByte)
+	bar := pb.StartNew(count)
+
 	// Encode //
 	var encodeCollectArByte [][]int
 
@@ -120,6 +127,7 @@ func EncodeFile(filePath string, Primitive int, EccSymbols int) {
 
 		// Закодированный и поврежденный массив битов
 		encodeCollectArByte = append(encodeCollectArByte, encoded)
+		bar.Increment()
 	}
 
 	//fmt.Println("Encoded FINAL: ", encodeCollectArByte[0])
@@ -160,6 +168,10 @@ func CorruptFile(filePath string, EccSymbols int) {
 		arIntFile = append(arIntFile, byteMessage)
 	}
 
+	// create and start new bar
+	count := len(arIntFile)
+	bar := pb.StartNew(count)
+
 	var corruptCollectArByte [][]int
 
 	// errors byte
@@ -179,6 +191,7 @@ func CorruptFile(filePath string, EccSymbols int) {
 
 		// Поврежденный массив битов
 		corruptCollectArByte = append(corruptCollectArByte, encoded)
+		bar.Increment()
 	}
 
 	//fmt.Println("Corrupted FINAL: ", corruptCollectArByte[0])
@@ -241,12 +254,17 @@ func DecodeAndFixCorruptFile(filePath string, Primitive int, EccSymbols int)  {
 		corruptCollectArByte = append(corruptCollectArByte, byteMessage)
 	}
 
+	// create and start new bar
+	countDec := len(corruptCollectArByte)
+	barDec := pb.StartNew(countDec)
+
 	var decodedCollectArByte [][]int
 
 	for i := 0; i < len(corruptCollectArByte); i++ {
 		decoded, _ := rs.Decode(corruptCollectArByte[i])
 
 		decodedCollectArByte = append(decodedCollectArByte, decoded)
+		barDec.Increment()
 	}
 
 	//fmt.Println("Decoded FINAL: ", decodedCollectArByte[0])
