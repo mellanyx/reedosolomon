@@ -9,7 +9,7 @@
 
 <div align="center">
 
-# zoxide
+# universal encoder/decoder reedosolomon
 
 [![crates.io][crates.io-badge]][crates.io]
 <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mellanyx/reedosolomon/total">
