@@ -44,14 +44,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		//errorsArr := map[int]int{
-		//	0: 99,
-		//	1: 0,
-		//	2: 3,
-		//	3: 68,
-		//	4: 21,
-		//}
-
 		reedosolomon.CorruptFile(flag.Args()[1], eccsymbols)
 	case "decode":
 		// mode path primitive eccsybmols
