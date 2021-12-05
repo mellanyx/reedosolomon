@@ -11,11 +11,9 @@
 
 # universal encoder/decoder reedosolomon
 
-[![crates.io][crates.io-badge]][crates.io]
 <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mellanyx/reedosolomon/total">
-[![Built with Nix][builtwithnix-badge]][builtwithnix]
 
-zoxide is a **smarter cd command**, inspired by z and autojump.
+**This library is a universal file encoder and decoder using Ridosolomon codes with error correction**
 
 It remembers which directories you use most frequently, so you can "jump" to
 them in just a few keystrokes.<br />
