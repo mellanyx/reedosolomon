@@ -26,123 +26,25 @@ zoxide works on all major shells.
 
 </div>
 
-## Getting started
+# Use compiled file
 
-![Tutorial][tutorial]
-
-```sh
-z foo              # cd into highest ranked directory matching foo
-z foo bar          # cd into highest ranked directory matching foo and bar
-
-z ~/foo            # z also works like a regular cd command
-z foo/             # cd into relative path
-z ..               # cd one level up
-z -                # cd into previous directory
-
-zi foo             # cd with interactive selection (using fzf)
-
-z foo<SPACE><TAB>  # show interactive completions (zoxide v0.7.10+, bash/fish/zsh only)
-```
-
-Read more about the matching algorithm [here][algorithm-matching].
-
-## Installation
-
-### *Step 1: Install zoxide*
-
-zoxide runs on most major platforms. If your platform isn't listed below,
-please [open an issue][issues].
-
-<details>
-<summary>Linux</summary>
-
-To install zoxide, run this command in your terminal:
+### *Step 1: Clone repo*
 
 ```sh
-curl -sS https://webinstall.dev/zoxide | bash
+git clone https://github.com/mellanyx/reedosolomon.git
 ```
 
-Alternatively, you can use a package manager:
+### *Step 2: Build project*
 
-| Distribution       | Repository              | Instructions                                                                                   |
-| ------------------ | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| ***Any***          | **[crates.io]**         | `cargo install zoxide --locked`                                                                |
-| *Any*              | [conda-forge]           | `conda install -c conda-forge zoxide`                                                          |
-| *Any*              | [Linuxbrew]             | `brew install zoxide`                                                                          |
-| Alpine Linux 3.13+ | [Alpine Linux Packages] | `apk add zoxide`                                                                               |
-| Arch Linux         | [Arch Linux Community]  | `pacman -S zoxide`                                                                             |
-| CentOS 7+          | [Copr]                  | `dnf copr enable atim/zoxide` <br /> `dnf install zoxide`                                      |
-| Debian 11+         | [Debian Packages]       | `apt install zoxide`                                                                           |
-| Devuan 4.0+        | [Devuan Packages]       | `apt install zoxide`                                                                           |
-| Fedora 32+         | [Fedora Packages]       | `dnf install zoxide`                                                                           |
-| Gentoo             | [GURU Overlay]          | `eselect repository enable guru` <br /> `emerge --sync guru` <br /> `emerge app-shells/zoxide` |
-| Manjaro            |                         | `pacman -S zoxide`                                                                             |
-| NixOS              | [nixpkgs]               | `nix-env -iA nixpkgs.zoxide`                                                                   |
-| Parrot OS          |                         | `apt install zoxide`                                                                           |
-| Raspbian 11+       | [Raspbian Packages]     | `apt install zoxide`                                                                           |
-| Ubuntu 21.04+      | [Ubuntu Packages]       | `apt install zoxide`                                                                           |
-| Void Linux         | [Void Linux Packages]   | `xbps-install -S zoxide`                                                                       |
-
-</details>
-
-<details>
-<summary>macOS</summary>
-
-To install zoxide, use a package manager:
-
-| Repository      | Instructions                          |
-| --------------- | ------------------------------------- |
-| **[crates.io]** | `cargo install zoxide --locked`       |
-| [conda-forge]   | `conda install -c conda-forge zoxide` |
-| [Homebrew]      | `brew install zoxide`                 |
-| [MacPorts]      | `port install zoxide`                 |
-
-</details>
-
-<details>
-<summary>Windows</summary>
-
-To install zoxide, run this command in your command prompt:
+Let's go to the cloned project and execute the following command:
 
 ```sh
-curl.exe -A "MS" https://webinstall.dev/zoxide | powershell
+go build
 ```
+After that the compiled file will appear
 
-Alternatively, you can use a package manager:
+![](assetsForReadMe/gifs/build.gif)
 
-| Repository      | Instructions                          |
-| --------------- | ------------------------------------- |
-| **[crates.io]** | `cargo install zoxide --locked`       |
-| [Chocolatey]    | `choco install zoxide`                |
-| [conda-forge]   | `conda install -c conda-forge zoxide` |
-| [Scoop]         | `scoop install zoxide`                |
-
-</details>
-
-<details>
-<summary>BSD</summary>
-
-To install zoxide, use a package manager:
-
-| Distribution  | Repository      | Instructions                    |
-| ------------- | --------------- | ------------------------------- |
-| ***Any***     | **[crates.io]** | `cargo install zoxide --locked` |
-| DragonFly BSD | [DPorts]        | `pkg install zoxide`            |
-| FreeBSD       | [FreshPorts]    | `pkg install zoxide`            |
-| NetBSD        | [pkgsrc]        | `pkgin install zoxide`          |
-
-</details>
-
-<details>
-<summary>Android</summary>
-
-To install zoxide, use a package manager:
-
-| Repository | Instructions         |
-| ---------- | -------------------- |
-| [Termux]   | `pkg install zoxide` |
-
-</details>
 
 ### *Step 2: Add zoxide to your shell*
 
