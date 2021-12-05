@@ -12,7 +12,7 @@
 # zoxide
 
 [![crates.io][crates.io-badge]][crates.io]
-[![Downloads][downloads-badge]][releases]
+<img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mellanyx/reedosolomon/total">
 [![Built with Nix][builtwithnix-badge]][builtwithnix]
 
 zoxide is a **smarter cd command**, inspired by z and autojump.
