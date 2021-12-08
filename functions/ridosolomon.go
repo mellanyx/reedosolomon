@@ -14,6 +14,30 @@ import (
 	"time"
 )
 
+func RandInt(min int, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+func ReadFile(filePath string) ([]byte, string)  {
+	// Чтение файла //
+	fileExt := filepath.Ext(filePath)
+
+	arByte, err := FileToArByte(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return arByte, fileExt
+}
+
+func WriteFile(arResultByte []byte, fileExt string, operation string) {
+	//filename := fmt.Sprintf("%s_File", operation)
+
+	if ArByteToFile(arResultByte, fmt.Sprintf("%s_File", operation), fileExt, 0644) == nil {
+		fmt.Println(fmt.Sprintf("%s_File is written !", operation))
+	}
+}
+
 func FileToArByte(filename string) ([]byte, error) {
 	// return []byte, nil if status OK
 	// return nil, err if status FAIL
@@ -72,7 +96,7 @@ func CollectArByteNotEccFile(arByte []byte) [][]byte {
 	return collectArByte
 }
 
-// EncodeFile - File bitmap encoding and corruption
+// EncodeByteArray - encoding and corruption
 // In the first argument, we specify one of the two primitive polynomials in decimal notation (285 or 301).
 // In the second argument, we specify the number of additional characters, it is equal to two more than the number of expected errors.
 // In the third argument, we pass a multidimensional array of bits.
@@ -81,7 +105,7 @@ func CollectArByteNotEccFile(arByte []byte) [][]byte {
 // В первом аргументе указываем один из двух примитивных многочленов в десятичном представлении (285 или 301).
 // Во втором аргументе указываем количество добавочных символов, оно равно в двое больше количества предполагаемых ошибок ).
 // В третьем аргументе передаем многомерный массив бит. )
-func EncodeFile(filePath string, Primitive int, EccSymbols int) {
+func EncodeByteArray(arByte [] byte, Primitive int, EccSymbols int) []byte {
 	start := time.Now()
 	// Init RS //
 	rs := RSCodec {
@@ -97,14 +121,6 @@ func EncodeFile(filePath string, Primitive int, EccSymbols int) {
 	}
 
 	rs.InitLookupTables()
-
-	// Чтение файла //
-	fileExt := filepath.Ext(filePath)
-
-	arByte, err := FileToArByte(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	collectArByte := CollectArByteFile(arByte, EccSymbols)
 
@@ -134,26 +150,17 @@ func EncodeFile(filePath string, Primitive int, EccSymbols int) {
 
 	arResultByte := UnPackArray(encodeCollectArByte)
 
-	if ArByteToFile(arResultByte, "Encoded_File", fileExt, 0644) == nil {
-		fmt.Println("Encoded File wrong!")
-	}
-
 	duration := time.Since(start)
-	fmt.Println("Runtime: ", duration)
+	fmt.Println("Encode Runtime: ", duration)
+
+	return arResultByte
 }
 
-func CorruptFile(filePath string, EccSymbols int) {
+func CorruptByteArray(arByte []byte, EccSymbols int) []byte {
+	rand.Seed(time.Now().UTC().UnixNano())
 	start := time.Now()
 	// Corrupt the message //
 	// ( повреждение сообщения )
-
-	// Чтение файла //
-	fileExt := filepath.Ext(filePath)
-
-	arByte, err := FileToArByte(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	collectArByte := CollectArByteNotEccFile(arByte)
 
@@ -182,9 +189,10 @@ func CorruptFile(filePath string, EccSymbols int) {
 		// corrupt the message
 		// ( повреждение сообщения - ошибочные биты )
 		for i := 0; i < (EccSymbols / 2); i++ {
-			rand.Seed(time.Now().UnixNano())
-
-			randErr := rand.Intn(len(encoded)-0) + 0
+			//rand.Seed(time.Now().UnixNano())
+			//
+			//randErr := rand.Intn(len(encoded)-0) + 0
+			randErr := RandInt(0, len(encoded))
 
 			encoded[randErr] = randErr
 		}
@@ -198,15 +206,13 @@ func CorruptFile(filePath string, EccSymbols int) {
 
 	arResultByte := UnPackArray(corruptCollectArByte)
 
-	if ArByteToFile(arResultByte, "Corrupted_File", fileExt, 0644) == nil {
-		fmt.Println("Corrupted File wrong!")
-	}
-
 	duration := time.Since(start)
-	fmt.Println("Runtime: ", duration)
+	fmt.Println("Corrupt Runtime: ", duration)
+
+	return arResultByte
 }
 
-// DecodeAndFixCorruptFile - Decoding and recovery of the file bitmap.
+// DecodeAndFixCorruptByteArray - Decoding and recovery of the file bitmap.
 // In the first argument, we specify the polynomial used for encoding.
 // In the second argument, we indicate the number of additional characters specified during encoding.
 // In the third argument, we pass a multidimensional array of bits.
@@ -215,7 +221,7 @@ func CorruptFile(filePath string, EccSymbols int) {
 // В первом аргументе указываем многочлен используемый при кодировании.
 // Во втором аргументе указываем количество добавочных символов, указанное при кодировании.
 // In the third argument, we pass the encoded and damaged multidimensional array. )
-func DecodeAndFixCorruptFile(filePath string, Primitive int, EccSymbols int)  {
+func DecodeAndFixCorruptByteArray(arByte []byte, Primitive int, EccSymbols int) []byte  {
 	start := time.Now()
 
 	// Init RS //
@@ -232,14 +238,6 @@ func DecodeAndFixCorruptFile(filePath string, Primitive int, EccSymbols int)  {
 	}
 
 	rs.InitLookupTables()
-
-	// Чтение файла //
-	fileExt := filepath.Ext(filePath)
-
-	arByte, err := FileToArByte(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	collectArByte := CollectArByteNotEccFile(arByte)
 
@@ -271,12 +269,10 @@ func DecodeAndFixCorruptFile(filePath string, Primitive int, EccSymbols int)  {
 
 	arResultByte := UnPackArray(decodedCollectArByte)
 
-	if ArByteToFile(arResultByte, "Decoded_File", fileExt, 0644) == nil {
-		fmt.Println("Decoded File wrong!")
-	}
-
 	duration := time.Since(start)
-	fmt.Println("Runtime: ", duration)
+	fmt.Println("Decode Runtime: ", duration)
+
+	return  arResultByte
 }
 
 // UnPackArray - Unpack decodedCollectArByte into one array to create a file

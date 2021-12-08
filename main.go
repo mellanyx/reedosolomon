@@ -11,6 +11,9 @@ import (
 func main() {
 	flag.Parse()
 
+	// Read File //
+	arByte, fileExt := reedosolomon.ReadFile(flag.Args()[1])
+
 	switch flag.Args()[0] {
 	case "encode":
 		// mode path primitive eccsybmols
@@ -30,7 +33,10 @@ func main() {
 			log.Fatal(err)
 		}
 
-		reedosolomon.EncodeFile(flag.Args()[1], primitive, eccsymbols)
+		encodedArByte := reedosolomon.EncodeByteArray(arByte, primitive, eccsymbols)
+
+		// Write File //
+		reedosolomon.WriteFile(encodedArByte, fileExt, "Encoded")
 	case "corrupt":
 		// mode path eccsybmols
 
@@ -44,7 +50,10 @@ func main() {
 			log.Fatal(err)
 		}
 
-		reedosolomon.CorruptFile(flag.Args()[1], eccsymbols)
+		corruptedArByte := reedosolomon.CorruptByteArray(arByte, eccsymbols)
+
+		// Write File //
+		reedosolomon.WriteFile(corruptedArByte, fileExt, "Corrupted")
 	case "decode":
 		// mode path primitive eccsybmols
 
@@ -64,7 +73,10 @@ func main() {
 			log.Fatal(err)
 		}
 
-		reedosolomon.DecodeAndFixCorruptFile(flag.Args()[1], primitive, eccsymbols)
+		decodedArByte := reedosolomon.DecodeAndFixCorruptByteArray(arByte, primitive, eccsymbols)
+
+		// Write File //
+		reedosolomon.WriteFile(decodedArByte, fileExt, "Decoded")
 	default:
 		fmt.Println("Не правильно переданы параметры, см. документацию")
 	}
