@@ -1,7 +1,6 @@
 package reedosolomon
 
 import (
-	//"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/cheggaaa/pb/v3"
@@ -19,7 +18,6 @@ func RandInt(min int, max int) int {
 }
 
 func ReadFile(filePath string) ([]byte, string)  {
-	// Чтение файла //
 	fileExt := filepath.Ext(filePath)
 
 	arByte, err := FileToArByte(filePath)
@@ -31,16 +29,12 @@ func ReadFile(filePath string) ([]byte, string)  {
 }
 
 func WriteFile(arResultByte []byte, fileExt string, operation string) {
-	//filename := fmt.Sprintf("%s_File", operation)
-
 	if ArByteToFile(arResultByte, fmt.Sprintf("%s_File", operation), fileExt, 0644) == nil {
 		fmt.Println(fmt.Sprintf("%s_File is written !", operation))
 	}
 }
 
 func FileToArByte(filename string) ([]byte, error) {
-	// return []byte, nil if status OK
-	// return nil, err if status FAIL
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, errors.Unwrap(err)
@@ -50,8 +44,6 @@ func FileToArByte(filename string) ([]byte, error) {
 }
 
 func ArByteToFile(ar []byte, name string, ext string, permissions fs.FileMode) error {
-	// return nil if status OK
-	// return err if status FAIL
 	err := ioutil.WriteFile(fmt.Sprintf("%s%s", name, ext), ar, permissions)
 	if err != nil {
 		return errors.Unwrap(err)
@@ -96,31 +88,31 @@ func CollectArByteNotEccFile(arByte []byte) [][]byte {
 	return collectArByte
 }
 
-// EncodeByteArray - encoding and corruption
+// EncodeByteArray - Кодирование и повреждение битового массива файла.
+// В первом аргументе указываем один из двух примитивных многочленов в десятичном представлении (285 или 301).
+// Во втором аргументе указываем количество добавочных символов, оно равно в двое больше количества предполагаемых ошибок.
+// В третьем аргументе передаем многомерный массив байт.
+//
+// ( File bitmap encoding and corruption.
 // In the first argument, we specify one of the two primitive polynomials in decimal notation (285 or 301).
 // In the second argument, we specify the number of additional characters, it is equal to two more than the number of expected errors.
-// In the third argument, we pass a multidimensional array of bits.
-//
-// ( Кодирование и повреждение битового массива файла.
-// В первом аргументе указываем один из двух примитивных многочленов в десятичном представлении (285 или 301).
-// Во втором аргументе указываем количество добавочных символов, оно равно в двое больше количества предполагаемых ошибок ).
-// В третьем аргументе передаем многомерный массив бит. )
-func EncodeByteArray(arByte [] byte, Primitive int, EccSymbols int) []byte {
-	start := time.Now()
-	// Init RS //
+// The third argument is a multidimensional byte array. )
+func EncodeByteArray(arByte [] byte, PrimitivePoly int, EccSymbols int) []byte {
+	startTime := time.Now()
+
 	rs := RSCodec {
 		// Мы используем GF(2^8), потому что каждое кодовое слово занимает 8 бит
 		// Можно использовать два приводимых многочлена в десятичном представлении
 		// 285 обычно используется для QR-кодов
 		// 301 обычно используется для Data Matrix
-		Primitive:  Primitive,
+		PrimitivePoly:  PrimitivePoly,
 
 		// EccSymbols - Кол-во добавочных символов
 		// Кол-во ошибок, которое код сможет исправить = EccSymbols / 2
 		EccSymbols: EccSymbols,
 	}
 
-	rs.InitLookupTables()
+	rs.InitTables()
 
 	collectArByte := CollectArByteFile(arByte, EccSymbols)
 
@@ -135,7 +127,7 @@ func EncodeByteArray(arByte [] byte, Primitive int, EccSymbols int) []byte {
 	// является массив бит размерностью (255 - EccSymbols)
 	// Делается для того, что бы скармливать функции кодирования массивы максимально допустимой длины (255)
 	for i := 0; i < len(collectArByte); i++ {
-		encoded := rs.Encode(collectArByte[i])
+		encoded := rs.RSEncode(collectArByte[i])
 
 		//if i == 0 {
 		//	fmt.Println("Encoded: ", encoded)
@@ -150,15 +142,15 @@ func EncodeByteArray(arByte [] byte, Primitive int, EccSymbols int) []byte {
 
 	arResultByte := UnPackArray(encodeCollectArByte)
 
-	duration := time.Since(start)
+	duration := time.Since(startTime)
 	fmt.Println("Encode Runtime: ", duration)
 
 	return arResultByte
 }
 
 func CorruptByteArray(arByte []byte, EccSymbols int) []byte {
+	startTime := time.Now()
 	rand.Seed(time.Now().UTC().UnixNano())
-	start := time.Now()
 	// Corrupt the message //
 	// ( повреждение сообщения )
 
@@ -206,7 +198,7 @@ func CorruptByteArray(arByte []byte, EccSymbols int) []byte {
 
 	arResultByte := UnPackArray(corruptCollectArByte)
 
-	duration := time.Since(start)
+	duration := time.Since(startTime)
 	fmt.Println("Corrupt Runtime: ", duration)
 
 	return arResultByte
@@ -221,8 +213,8 @@ func CorruptByteArray(arByte []byte, EccSymbols int) []byte {
 // В первом аргументе указываем многочлен используемый при кодировании.
 // Во втором аргументе указываем количество добавочных символов, указанное при кодировании.
 // In the third argument, we pass the encoded and damaged multidimensional array. )
-func DecodeAndFixCorruptByteArray(arByte []byte, Primitive int, EccSymbols int) []byte  {
-	start := time.Now()
+func DecodeAndFixCorruptByteArray(arByte []byte, PrimitivePoly int, EccSymbols int) []byte  {
+	startTime := time.Now()
 
 	// Init RS //
 	rs := RSCodec {
@@ -230,14 +222,14 @@ func DecodeAndFixCorruptByteArray(arByte []byte, Primitive int, EccSymbols int) 
 		// Можно использовать два приводимых многочлена в десятичном представлении
 		// 285 обычно используется для QR-кодов
 		// 301 обычно используется для Data Matrix
-		Primitive:  Primitive,
+		PrimitivePoly:  PrimitivePoly,
 
 		// EccSymbols - Кол-во добавочных символов
 		// Кол-во ошибок, которое код сможет исправить = EccSymbols / 2
 		EccSymbols: EccSymbols,
 	}
 
-	rs.InitLookupTables()
+	rs.InitTables()
 
 	collectArByte := CollectArByteNotEccFile(arByte)
 
@@ -259,7 +251,7 @@ func DecodeAndFixCorruptByteArray(arByte []byte, Primitive int, EccSymbols int) 
 	var decodedCollectArByte [][]int
 
 	for i := 0; i < len(corruptCollectArByte); i++ {
-		decoded, _ := rs.Decode(corruptCollectArByte[i])
+		decoded, _ := rs.RSDecode(corruptCollectArByte[i])
 
 		decodedCollectArByte = append(decodedCollectArByte, decoded)
 		barDec.Increment()
@@ -269,7 +261,7 @@ func DecodeAndFixCorruptByteArray(arByte []byte, Primitive int, EccSymbols int) 
 
 	arResultByte := UnPackArray(decodedCollectArByte)
 
-	duration := time.Since(start)
+	duration := time.Since(startTime)
 	fmt.Println("Decode Runtime: ", duration)
 
 	return  arResultByte

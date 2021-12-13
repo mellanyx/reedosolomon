@@ -4,109 +4,93 @@ import (
 	"log"
 )
 
-// RSCodec Reed-Solomon coder/decoder
-// ( Кодер-декодер Рида-Соломона )
+// RSCodec - Кодер-декодер Рида-Соломона
+// ( Reed-Solomon coder/decoder )
 type RSCodec struct {
-	// Primitive - Decimal representation of primitive polynomial to generate lookup table
-	// ( Десятичное представление примитивного полинома для создания таблицы поиска )
-	Primitive int
-	// EccSymbols - Number of additional characters
-	// ( Количество дополнительных символов )
+	// PrimitivePoly - Десятичное представление примитивного полинома для создания таблицы поиска
+	// ( Decimal representation of primitive polynomial to create lookup table )
+	PrimitivePoly int
+	// EccSymbols - Количество дополнительных символов
+	// ( Number of additional characters )
 	EccSymbols int
 }
 
-var (
-	exponents = make([]int, 512)
-	logs      = make([]int, 256)
-)
+var exponentsTable = make([]int, 512)
+var logsTable = make([]int, 256)
 
-// InitLookupTables fills exponential & log tables
-// ( заполняет экспоненциальные и журнальные таблицы )
-func (r *RSCodec) InitLookupTables() {
+// InitTables - заполняет экспоненциальные и логарифмические таблицы
+func (rs *RSCodec) InitTables() {
+	// RUS //
+	// Предварительно вычисляем логарифм и анти логарифмические таблицы для более быстрого вычисления, используя предоставленный примитивный полином.
+	// b ** (log_b (x), log_b (y)) == x * y, где b - основание или генератор логарифма =>
+	// мы можем использовать любое значение b для предварительного вычисления логарифмических и анти логарифмических таблиц, используемых для умножения двух чисел x и y.
+
 	// EN //
 	// Precompute the logarithm and anti-log tables for faster computation, using the provided primitive polynomial.
 	// b**(log_b(x), log_b(y)) == x * y, where b is the base or generator of the logarithm =>
 	// we can use any b to precompute logarithm and anti-log tables to use for multiplying two numbers x and y.
-
-	// RUS //
-	// Предварительно вычисляем логарифм и антилогарифмические таблицы для более быстрого вычисления, используя предоставленный примитивный полином.
-	// b ** (log_b (x), log_b (y)) == x * y, где b - основание или генератор логарифма =>
-	// мы можем использовать любое значение b для предварительного вычисления логарифмических и антилогарифмических таблиц, используемых для умножения двух чисел x и y.
-	x := 1
+	initEL := 1
 	for i := 0; i < 255; i++ {
-		exponents[i] = x
-		logs[x] = i
-		x = russianPeasantMult(x, 2, r.Primitive, 256, true)
+		exponentsTable[i] = initEL
+		logsTable[initEL] = i
+		initEL = russianPeasantMult(initEL, 2, rs.PrimitivePoly, 256, true)
 	}
 
 	for i := 255; i < 512; i++ {
-		exponents[i] = exponents[i-255]
+		exponentsTable[i] = exponentsTable[i-255]
 	}
 }
 
-// Encode - given message into Reed-Solomon
-// ( кодируем данное сообщение кодом Рида-Соломона )
-func (r *RSCodec) Encode(data []byte) (encoded []int) {
-	byteMessage := make([]int, len(data))
-	for i, ch := range data {
-		byteMessage[i] = int(ch)
-	}
+// RSEncode - кодируем данное сообщение кодом Рида-Соломона
+// ( encode this message with the Reed-Solomon code )
+func (rs *RSCodec) RSEncode(arByte []byte) (encoded []int) {
+	transformedByteAr := make([]int, len(arByte))
 
-	//if it_key == 0 {
-	//	fmt.Println("Original message:", byteMessage)
-	//}
+	irredPoly := PolyGen(rs.EccSymbols)
+	placeholder := make([]int, len(irredPoly)-1)
 
-	g := rsGeneratorPoly(r.EccSymbols)
+	for i, j := range arByte { transformedByteAr[i] = int(j) }
 
-	placeholder := make([]int, len(g)-1)
-	// Pad the message and divide it by the irreducible generator polynomial
 	// Дополнение сообщения и разделиние его на неприводимый порождающий многочлен
-	_, remainder := gfPolyDivision(append(byteMessage, placeholder...), g)
+	// Adding the message and splitting it into an irreducible generator polynomial
+	_, residue := gfPolyDivision(append(transformedByteAr, placeholder...), irredPoly)
 
-	encoded = append(byteMessage, remainder...)
+	encoded = append(transformedByteAr, residue...)
 	return
 }
 
-// Decode - and correct encoded Reed-Solomon message
-// ( Декодирование и коррекция ошибок в сообщении )
-func (r *RSCodec) Decode(data []int) ([]int, []int) {
-	decoded := data
+// RSDecode - декодирование и коррекция ошибок в сообщении
+// ( decoding and error correction in a message )
+func (rs *RSCodec) RSDecode(arStart []int) ([]int, []int) {
+	arDecoded := arStart
 
-	if len(data) > 255 {
-		log.Fatalf("Message is too long, max allowed size is %d\n", 255)
+	if len(arStart) > 255 {
+		log.Fatalf("Сообщение слишком длинное, максимально допустимый размер (The message is too long, the maximum size allowed) %d\n", 255)
 	}
 
-	synd := calcSyndromes(data, r.EccSymbols)
-	if checkSyndromes(synd) {
-		m := len(decoded) - r.EccSymbols
-		return decoded[:m], decoded[m:]
+	syndrom := calcSyndromes(arStart, rs.EccSymbols)
+
+	if checkSyndromes(syndrom) {
+		m := len(arDecoded) - rs.EccSymbols
+		return arDecoded[:m], arDecoded[m:]
 	}
 
-	// compute the error locator polynomial using Berlekamp-Massey
 	// вычисление полинома локатора ошибок с помощью Берлекампа-Масси
-	errLoc := unknownErrorLocator(synd, r.EccSymbols)
-	// reverse errLoc
-	// переворачиваем errLoc
+	// calculating the error locator polynomial using Berlekamp-Massey
+	errLoc := unknownErrorLocator(syndrom, rs.EccSymbols)
+
 	reverse(errLoc)
-	errPos := findErrors(errLoc, len(decoded))
+	errPos := findErrors(errLoc, len(arDecoded))
 
-	decoded = correctErrors(decoded, synd, errPos)
+	arDecoded = correctErrors(arDecoded, syndrom, errPos)
 
-	synd = calcSyndromes(decoded, r.EccSymbols)
-	if !checkSyndromes(synd) {
+	slice := len(arDecoded) - rs.EccSymbols
+
+	syndrom = calcSyndromes(arDecoded, rs.EccSymbols)
+
+	if !checkSyndromes(syndrom) {
 		log.Fatalf("Could not correct message\n")
 	}
 
-	m := len(decoded) - r.EccSymbols
-	return decoded[:m], decoded[m:]
-}
-
-func rsGeneratorPoly(nsym int) []int {
-	// generate an irreducible polynomial (necessary to encode message in Reed-Solomon)
-	// генерация неприводимого многочлена (необходимо для кодирования сообщения по Риду-Соломону)
-	g := []int{1}
-	for i := 0; i < nsym; i++ {
-		g = gfPolyMultiplication(g, []int{1, gfPow(2, i)})
-	}
-	return g
+	return arDecoded[:slice], arDecoded[slice:]
 }

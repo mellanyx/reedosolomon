@@ -133,3 +133,10 @@ eccsybmols - we specify the same value as when encoding and corrupt.
 
 After execution, we should get our original fully working file
 
+## Authors
+
+* **Alexandr Starikov** - [GitHub](https://github.com/mellanyx)
+
+## License
+
+This project is licensed under the MIT License.

@@ -5,11 +5,6 @@ import (
 	"math"
 )
 
-// ========================================== //
-//             Used Algorithms                //
-//             Используемые алгоритмы         //
-// ========================================== //
-
 // sieveOfEratosthenes - efficient implementation of Sieve algo
 // return list of primes less then N
 // ( эффективная реализация алгоритма Sieve
@@ -58,7 +53,7 @@ func filter(a []int, f func(int) bool) []int {
 
 // Russian Peasant Multiplicaton algorithm in GF
 // default values for 8-bit size: fieldsize=256, carryless=true
-// Алгоритм умножения русских крестьян  в GF
+// Алгоритм умножения русских крестьян в GF
 // значения по умолчанию для 8-битного размера: размер поля = 256, без переноса = true
 func russianPeasantMult(x, y, prim, fieldsize int, carryless bool) (result int) {
 	for y > 0 {
@@ -87,6 +82,16 @@ func russianPeasantMult(x, y, prim, fieldsize int, carryless bool) (result int) 
 	return
 }
 
+// PolyGen - генерация неприводимого многочлена (необходимо для кодирования сообщения по Риду-Соломону)
+// ( Generation of an irreducible polynomial (required to encode the message according to Reed-Solomon) )
+func PolyGen(nsym int) []int {
+	g := []int{1}
+	for i := 0; i < nsym; i++ {
+		g = GFPolyMult(g, []int{1, GFPow(2, i)})
+	}
+	return g
+}
+
 // forneyAlgo -  Forney algorithm to compute the error magnitude
 // ( Алгоритм Форни для вычисления величины ошибки )
 func forneyAlgo(message, errorPolynomial, locationPolynomial, errPos []int) []int {
@@ -107,7 +112,7 @@ func forneyAlgo(message, errorPolynomial, locationPolynomial, errPos []int) []in
 		errorLocatorPrimeTemp := []int{}
 		for j := 0; j < len(locationPolynomial); j++ {
 			if j != i {
-				errorLocatorPrimeTemp = append(errorLocatorPrimeTemp, gfSubstraction(1, gfMultiplication(locationInverse, locationPolynomial[j])))
+				errorLocatorPrimeTemp = append(errorLocatorPrimeTemp, GFDeduction(1, GFMult(locationInverse, locationPolynomial[j])))
 			}
 		}
 
@@ -115,12 +120,12 @@ func forneyAlgo(message, errorPolynomial, locationPolynomial, errPos []int) []in
 		errorLocatorPrime := 1
 
 		for _, coef := range errorLocatorPrimeTemp {
-			errorLocatorPrime = gfMultiplication(errorLocatorPrime, coef)
+			errorLocatorPrime = GFMult(errorLocatorPrime, coef)
 		}
 
 		// Y1 = omega(X1.inverse()) / prod(1 - Xj*X1.inverse()) for j in len(X)
 		y := gfPolyEvaluate(errorPolynomial, locationInverse)
-		y = gfMultiplication(gfPow(location, 1), y)
+		y = GFMult(GFPow(location, 1), y)
 
 		if errorLocatorPrime == 0 {
 			log.Println("Could not find magnitude")

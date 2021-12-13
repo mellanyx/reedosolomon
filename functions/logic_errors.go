@@ -2,11 +2,6 @@ package reedosolomon
 
 import "log"
 
-// ========================================== //
-//         Error search & correction          //
-//         Поиск и коррекция ошибок           //
-// ========================================== //
-
 // calcErrorLocatorPoly - compute the errors locator polynomial from the errors positions as input
 // ( вычисляем полином локатора ошибок по позициям ошибок в качестве входных данных )
 func calcErrorLocatorPoly(errorPositions []int) []int {
@@ -15,12 +10,12 @@ func calcErrorLocatorPoly(errorPositions []int) []int {
 
 	// ( erasures location = product (1 - x * alpha ** i) для i в ошибочных позициях (alpha - это такая alpha, выбранная для оценки многочленов) )
 	for _, p := range errorPositions {
-		erasureLocations = gfPolyMultiplication(erasureLocations, gfPolyAddition([]int{1}, []int{gfPow(2, p), 0}))
+		erasureLocations = GFPolyMult(erasureLocations, gfPolyAddition([]int{1}, []int{GFPow(2, p), 0}))
 	}
 	return erasureLocations
 }
 
-func calcErrorPoly(synd, erasureLocations []int, nsym int) []int {
+func calcErrorPoly(syndrom, erasureLocations []int, nsym int) []int {
 	// compute the error evaluator polynomial Omega from the
 	// syndrome locator Sigma
 	// Omega(x) = [ Synd(x) * Error_loc(x) ] mod x^(n-k+1)
@@ -30,7 +25,7 @@ func calcErrorPoly(synd, erasureLocations []int, nsym int) []int {
 	placeholder := make([]int, nsym+1)
 	placeholder = append([]int{1}, placeholder...)
 
-	_, remainder := gfPolyDivision(gfPolyMultiplication(synd, erasureLocations), placeholder)
+	_, remainder := gfPolyDivision(GFPolyMult(syndrom, erasureLocations), placeholder)
 
 	return remainder
 }
@@ -59,7 +54,7 @@ func unknownErrorLocator(synd []int, nsym int) []int {
 		// ( вычисление дельты несоответствия )
 		delta := synd[K]
 		for j := 1; j < len(errLoc); j++ {
-			delta ^= gfMultiplication(errLoc[len(errLoc)-(j+1)], synd[K-j])
+			delta ^= GFMult(errLoc[len(errLoc)-(j+1)], synd[K-j])
 		}
 
 		// Shift polynomials to compute next degree
@@ -104,7 +99,7 @@ func findErrors(errLoc []int, messageLen int) []int {
 	errPos := []int{}
 
 	for i := 0; i < messageLen; i++ {
-		if gfPolyEvaluate(errLoc, gfPow(2, i)) == 0 {
+		if gfPolyEvaluate(errLoc, GFPow(2, i)) == 0 {
 			errPos = append(errPos, messageLen-1-i)
 		}
 	}
@@ -115,11 +110,11 @@ func findErrors(errLoc []int, messageLen int) []int {
 	return errPos
 }
 
-func correctErrors(message, synd, errPos []int) []int {
+func correctErrors(msg, syndrom, errPos []int) []int {
 	coefPos := make([]int, len(errPos))
 
 	for i, p := range errPos {
-		coefPos[i] = len(message) - 1 - p
+		coefPos[i] = len(msg) - 1 - p
 	}
 
 	// compute the error locator polynomial
@@ -127,24 +122,23 @@ func correctErrors(message, synd, errPos []int) []int {
 	errorLocatorPolynomial := calcErrorLocatorPoly(coefPos)
 
 	// reverse errLoc
-	// ( переворачиваем errLoc )
-	reverse(synd)
-	errorPolynomial := calcErrorPoly(synd, errorLocatorPolynomial, len(errorLocatorPolynomial)-1)
+	reverse(syndrom)
+	errorPolynomial := calcErrorPoly(syndrom, errorLocatorPolynomial, len(errorLocatorPolynomial)-1)
 
 	// get the error location polynomial from the error positions in errPos
 	// ( получение полинома местоположения ошибки из позиций ошибки в errPos )
 	locationPolynomial := []int{}
 	for i := 0; i < len(coefPos); i++ {
 		l := 255 - coefPos[i]
-		locationPolynomial = append(locationPolynomial, gfPow(2, -l))
+		locationPolynomial = append(locationPolynomial, GFPow(2, -l))
 	}
 
 	// Forney algorithm: compute the magnitudes
 	// ( Алгоритм Форни: вычисление величин )
-	E := forneyAlgo(message, errorPolynomial, locationPolynomial, errPos)
+	E := forneyAlgo(msg, errorPolynomial, locationPolynomial, errPos)
 
 	// Simply add correction vector to message
 	// ( Добавление вектора коррекции к сообщению )
-	message = gfPolyAddition(message, E)
-	return message
+	msg = gfPolyAddition(msg, E)
+	return msg
 }
