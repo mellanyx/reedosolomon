@@ -133,6 +133,25 @@ eccsybmols - we specify the same value as when encoding and corrupt.
 
 After execution, we should get our original fully working file
 
+# Testing on a 1GB file
+
+### *Tested on MacBook Air 2020:*
+* **Chip: Apple M1**
+* **Shared memory: 16 GB**
+* **SSD: 512 GB**
+
+#### *Encode 1GB file*
+
+![](assetsForReadMe/screenshots/encode_1GB.png)
+
+#### *Corrupt & Decode 1GB file*
+
+![](assetsForReadMe/screenshots/corrupt_decode_1GB.png)
+
+#### *Result outputs*
+
+![](assetsForReadMe/screenshots/results_1GB.png)
+
 ## Authors
 
 * **Alexandr Starikov** - [GitHub](https://github.com/mellanyx)

@@ -133,7 +133,7 @@ func forneyAlgo(message, errorPolynomial, locationPolynomial, errPos []int) []in
 
 		// compute the magnitude
 		// magnitude is the correction vector
-		magnitude, _ := gfDivision(y, errorLocatorPrime)
+		magnitude, _ := GFDivision(y, errorLocatorPrime)
 		E[errPos[i]] = magnitude
 	}
 

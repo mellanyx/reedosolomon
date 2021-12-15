@@ -10,7 +10,7 @@ func calcErrorLocatorPoly(errorPositions []int) []int {
 
 	// ( erasures location = product (1 - x * alpha ** i) для i в ошибочных позициях (alpha - это такая alpha, выбранная для оценки многочленов) )
 	for _, p := range errorPositions {
-		erasureLocations = GFPolyMult(erasureLocations, gfPolyAddition([]int{1}, []int{GFPow(2, p), 0}))
+		erasureLocations = GFPolyMult(erasureLocations, GFPolyAddition([]int{1}, []int{GFPow(2, p), 0}))
 	}
 	return erasureLocations
 }
@@ -40,8 +40,8 @@ func unknownErrorLocator(synd []int, nsym int) []int {
 	// ( Идея состоит в том, что BM будет итеративно оценивать полином локатора ошибок
 	// Для этого он вычислит член несоответствия под названием Дельта, который скажет
 	// если полином локатора ошибок нуждается в обновлении или нет )
-	errLoc := []int{1} // Sigma
-	oldLoc := []int{1} // BM - итерационный алгоритм, значения предыдущих итераций Sigma
+	errLocator := []int{1} // Sigma
+	oldLocator := []int{1} // BM - итерационный алгоритм, значения предыдущих итераций Sigma
 
 	syndShift := 0
 	if len(synd) > nsym {
@@ -53,53 +53,53 @@ func unknownErrorLocator(synd []int, nsym int) []int {
 		// compute the discrepance Delta
 		// ( вычисление дельты несоответствия )
 		delta := synd[K]
-		for j := 1; j < len(errLoc); j++ {
-			delta ^= GFMult(errLoc[len(errLoc)-(j+1)], synd[K-j])
+		for j := 1; j < len(errLocator); j++ {
+			delta ^= GFMult(errLocator[len(errLocator)-(j+1)], synd[K-j])
 		}
 
 		// Shift polynomials to compute next degree
 		// Полиномы сдвига для вычисления следующей степени
-		oldLoc = append(oldLoc, 0)
+		oldLocator = append(oldLocator, 0)
 
 		// iteratively estimate the errata locator and evaluator polynomials
 		// ( оценка полиномов локатора ошибок и вычислителя )
 		if delta != 0 {
-			if len(oldLoc) > len(errLoc) {
+			if len(oldLocator) > len(errLocator) {
 				// computing Sigma
 				// ( вычисление Sigma )
-				newLoc := gfPolyScale(oldLoc, delta)
-				oldLoc = gfPolyScale(errLoc, gfInverse(delta))
-				errLoc = newLoc
+				newLocator := GFPolyScale(oldLocator, delta)
+				oldLocator = GFPolyScale(errLocator, gfInverse(delta))
+				errLocator = newLocator
 			}
 
 			// update with the discrepancy
 			// ( обновление с не соответствием )
-			errLoc = gfPolyAddition(errLoc, gfPolyScale(oldLoc, delta))
+			errLocator = GFPolyAddition(errLocator, GFPolyScale(oldLocator, delta))
 		}
 	}
 
 	// drop leading zeroes
 	// ( отбрасываем ведущие нули )
-	for len(errLoc) > 0 && errLoc[0] == 0 {
-		errLoc = errLoc[1:]
+	for len(errLocator) > 0 && errLocator[0] == 0 {
+		errLocator = errLocator[1:]
 	}
 
-	errs := len(errLoc) - 1
+	errs := len(errLocator) - 1
 	if (errs * 2) > nsym {
 		log.Printf("Too many errors to correct: %d\n", errs)
 	}
 
-	return errLoc
+	return errLocator
 }
 
-func findErrors(errLoc []int, messageLen int) []int {
+func findErrors(errLocator []int, messageLen int) []int {
 	// find the roots of polynomial by brute-force iter
 	// ( поиск корней многочлена с помощью перебора )
-	errs := len(errLoc) - 1
+	errs := len(errLocator) - 1
 	errPos := []int{}
 
 	for i := 0; i < messageLen; i++ {
-		if gfPolyEvaluate(errLoc, GFPow(2, i)) == 0 {
+		if gfPolyEvaluate(errLocator, GFPow(2, i)) == 0 {
 			errPos = append(errPos, messageLen-1-i)
 		}
 	}
@@ -121,7 +121,7 @@ func correctErrors(msg, syndrom, errPos []int) []int {
 	// ( вычисление полинома локатора ошибок )
 	errorLocatorPolynomial := calcErrorLocatorPoly(coefPos)
 
-	// reverse errLoc
+	// reverse errLocator
 	reverse(syndrom)
 	errorPolynomial := calcErrorPoly(syndrom, errorLocatorPolynomial, len(errorLocatorPolynomial)-1)
 
@@ -139,6 +139,6 @@ func correctErrors(msg, syndrom, errPos []int) []int {
 
 	// Simply add correction vector to message
 	// ( Добавление вектора коррекции к сообщению )
-	msg = gfPolyAddition(msg, E)
+	msg = GFPolyAddition(msg, E)
 	return msg
 }

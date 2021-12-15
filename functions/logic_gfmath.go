@@ -11,9 +11,9 @@ func GFMult(x, y int) int {
 	return exponentsTable[logsTable[x]+logsTable[y]]
 }
 
-// gfPolyAddition - Polynomial addition
+// GFPolyAddition - Polynomial addition
 // ( добавленеи полинома )
-func gfPolyAddition(p, q []int) (result []int) {
+func GFPolyAddition(p, q []int) (result []int) {
 	if len(p) > len(q) {
 		result = make([]int, len(p))
 	} else {
@@ -28,9 +28,9 @@ func gfPolyAddition(p, q []int) (result []int) {
 	return
 }
 
-// gfDivision - Division GF
+// GFDivision - Division GF
 // ( Деление GF )
-func gfDivision(x, y int) (int, error) {
+func GFDivision(x, y int) (int, error) {
 	if y == 0 {
 		return -1, errors.New("Zero division")
 	}
@@ -48,7 +48,7 @@ func GFPow(x, power int) int {
 
 // gfPolyScale - multiply polynomial by scalar
 // ( умножение полинома на скаляр )
-func gfPolyScale(p []int, x int) []int {
+func GFPolyScale(p []int, x int) []int {
 	result := make([]int, len(p))
 	for i := 0; i < len(p); i++ {
 		result[i] = GFMult(p[i], x)
