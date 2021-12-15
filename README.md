@@ -11,7 +11,14 @@
 
 # universal encoder/decoder reedosolomon
 
+<img alt="GitHub (Pre-)Release Date" src="https://img.shields.io/github/release-date-pre/mellanyx/reedosolomon">
+<img src="https://img.shields.io/github/v/release/mellanyx/reedosolomon">
+<img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/mellanyx/reedosolomon">
+
+####
+
 <img alt="GitHub all releases" src="https://img.shields.io/github/downloads/mellanyx/reedosolomon/total">
+<img src="https://img.shields.io/github/go-mod/go-version/mellanyx/reedosolomon">
 
 **This library is a universal file encoder and decoder using Ridosolomon codes with error correction**
 
@@ -68,7 +75,7 @@ For example, if we specify eccsybmols equal to 2, then the maximum number of err
 ./reedosolomon corrupt [file path] [eccsybmols]
 ```
 
-eccsybmols - we specify the same value as when encoding. After execution, the program itself will damage every 256 bits with the number of errors equal to (eccsybmols / 2)
+eccsybmols - we indicate a value no more than what we indicated during encoding. Once executed, the program itself will corrupt every 256 bits with an error count equal to (eccsybmols / 2)
 
 ![](assetsForReadMe/gifs/corrupt.gif)
 
@@ -115,7 +122,7 @@ reedosolomon.EncodeFile(filepath, primitive, eccsymbols)
 
 #### *Corrupt file*
 
-eccsybmols - we specify the same value as when encoding. After execution, the program itself will damage every 256 bits with the number of errors equal to (eccsybmols / 2)
+eccsybmols - we indicate a value no more than what we indicated during encoding. Once executed, the program itself will corrupt every 256 bits with an error count equal to (eccsybmols / 2)
 
 ```golang
 reedosolomon.CorruptFile(filepath, eccsymbols)
