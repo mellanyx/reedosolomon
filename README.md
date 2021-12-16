@@ -58,8 +58,10 @@ After that the compiled file will appear
 #### *Encode file*
 
 ```sh
-./reedosolomon encode [file path] [primitive poligon 285 / 301] [eccsybmols]
+./reedosolomon encode [file path] [primitive] [eccsybmols]
 ```
+
+primitive poly GF(256) = one of (285, 299, 301, 333, 351, 355, 357, 361, 369, 391, 397, 425, 251, 463, 487, 501)
 
 Number of bugs to be fixed = eccsybmols * 2
 
@@ -100,6 +102,10 @@ After execution, we should get our original fully working file
 
 ### *Step 1: Import in your project*
 
+```sh
+go get https://github.com/mellanyx/reedosolomon.git
+```
+
 ```golang
 package main
 
@@ -110,7 +116,7 @@ import "github.com/mellanyx/reedosolomon/functions"
 
 #### *Encode file*
 
-primitive = 285 and 301
+primitive poly GF(256) = one of (285, 299, 301, 333, 351, 355, 357, 361, 369, 391, 397, 425, 251, 463, 487, 501)
 
 Number of bugs to be fixed = eccsybmols * 2
 
@@ -131,7 +137,7 @@ reedosolomon.CorruptFile(filepath, eccsymbols)
 #### *Decode file*
 
 ```golang
-reedosolomon.DecodeAndFixCorruptFile(flag.Args()[1], primitive, eccsymbols)
+reedosolomon.DecodeAndFixCorruptFile(filepath, primitive, eccsymbols)
 ```
 
 primitive poligon - we specify the same value as when encoding.
