@@ -26,10 +26,9 @@ It remembers which directories you use most frequently, so you can "jump" to
 them in just a few keystrokes.<br />
 zoxide works on all major shells.
 
-[Getting started](#getting-started) •
-[Installation](#installation) •
-[Configuration](#configuration) •
-[Integrations](#third-party-integrations)
+[Use as compiled file](#use-as-compiled-file) •
+[Use as a library](#use-as-a-library) •
+[Testing on a 1GB file](#testing-on-a-1gb-file) •
 
 </div>
 
